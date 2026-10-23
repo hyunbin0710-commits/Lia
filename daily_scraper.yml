@@ -1,0 +1,33 @@
+name: Beauty Trend Scraper MVP
+
+on:
+  workflow_dispatch: # 깃허브 웹페이지에서 수동으로 '실행' 버튼을 누를 수 있게 설정
+  schedule:
+    - cron: '0 0 * * *' # 매일 자정(UTC 기준)에 자동 실행
+
+jobs:
+  scrape-data:
+    runs-on: ubuntu-latest # 깃허브가 제공하는 가상 리눅스 서버 사용
+
+    steps:
+      - name: 1. 저장소 코드 불러오기
+        uses: actions/checkout@v4
+
+      - name: 2. 파이썬 3.11 설치
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 3. 필수 라이브러리 및 Playwright 크롬 브라우저 설치
+        run: |
+          pip install -r requirements.txt
+          playwright install --with-deps chromium
+
+      - name: 4. 크롤링 파이프라인 실행
+        run: python beauty_mvp_pipeline.py
+
+      - name: 5. 생성된 엑셀 파일 추출 (Artifacts 저장)
+        uses: actions/upload-artifact@v4
+        with:
+          name: beauty-trend-excel-output
+          path: beauty_trend_data_*.xlsx
